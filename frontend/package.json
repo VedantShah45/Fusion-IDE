@@ -17,7 +17,10 @@
     "axios": "^1.7.4",
     "framer-motion": "^11.3.27",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "y-monaco": "^0.1.6",
+    "y-webrtc": "^10.3.0",
+    "yjs": "^13.6.18"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

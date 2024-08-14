@@ -5,6 +5,8 @@ import { Select } from '@chakra-ui/react'
 import axios from 'axios'
 
 export function Codepage() {
+    const [status,setStatus]=useState("");
+    const [output,setOutput]=useState("");
     const [language, setLanguage] = useState("javascript");
     const [code, setCode] = useState("");
     const handleCodeChange = (newCode) => {
@@ -16,7 +18,7 @@ export function Codepage() {
             let rawCode = JSON.stringify(code);
             console.log(rawCode);
             const response = await axios.post('https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=false', {
-                source_code: JSON.stringify(code),
+                source_code: code,
                 language_id: 54,
                 stdin: ""
             }, {
@@ -30,16 +32,30 @@ export function Codepage() {
                 token = response.data.token;
             }
         } catch (error) {
+            if (error.response && error.response.status === 429) {
+                setStatus("You have attempted to run too soon, wait for some time.....")
+            }
             console.error(error);
         }
     }
     const showOutput = async () => {
         try {
-            const response = await axios.get(`https://ce.judge0.com/submissions/${token}?base64_encoded=false`);
+            const response = await axios.get(`https://ce.judge0.com/submissions/${token}?base64_encoded=true`);
             if (response) {
-                console.log(response.data.stdout);
+                const description=response.data.status.description;
+                const compile=atob(response.data.compile_output);
+                const output=atob(response.data.stdout);
+                console.log(compile,output);
+                if(description=='Compilation Error'){
+                    setStatus(`Compilation Result : ${description}`);
+                    return;
+                }
+                setOutput(output);
             }
         } catch (error) {
+            if (error.response && error.response.status === 429) {
+                setStatus("You have attempted to run too soon, wait for some time.....")
+            }
             console.log(error);
         }
     }
@@ -51,7 +67,7 @@ export function Codepage() {
                         <h1>Fusion-IDE</h1>
                     </div>
                     <div>
-                        <Select placeholder='Select language' className="text-black" onChange={event => setLanguage(event.target.value)}>
+                        <Select placeholder='Select language' className="text-white" onChange={event => setLanguage(event.target.value)}>
                             <option value='cpp' className="text-black">C++</option>
                             <option value='c' className="text-black">C</option>
                             <option value='java' className="text-black">Java</option>
@@ -78,7 +94,10 @@ export function Codepage() {
             </div>
             <div className="bg-slate-500 h-full w-full flex flex-col items-center">
                 <label className="text-white " htmlFor="output">Output Screen</label>
-                <textarea id="output" className="bg-slate-200 p-2 h-full w-full" type="text" name="output" />
+                <div id="output" className="bg-slate-800 p-2 h-full w-full text-white" type="text" name="output" >
+                    <h1>{status}</h1>
+                    <p>Output :<br/>{output}</p>
+                </div>
             </div>
         </div>
     )
